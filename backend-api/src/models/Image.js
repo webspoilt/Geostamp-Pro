@@ -1,63 +1,42 @@
 const mongoose = require('mongoose');
 
-const imageSchema = new mongoose.Schema(
-    {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        filename: {
+const imageSchema = new mongoose.Schema({
+    originalName: {
+        type: String,
+        required: true,
+    },
+    filename: {
+        type: String,
+        required: true,
+    },
+    mimeType: {
+        type: String,
+        required: true,
+    },
+    size: {
+        type: Number,
+        required: true,
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false, // Changed from true to false for anonymous uploads
+    },
+    location: {
+        type: {
             type: String,
-            required: true,
+            enum: ['Point'],
+            default: 'Point',
         },
-        originalName: {
-            type: String,
-            required: true,
-        },
-        path: {
-            type: String,
-            required: true,
-        },
-        mimetype: {
-            type: String,
-        },
-        size: {
-            type: Number,
-        },
-        location: {
-            type: {
-                type: String,
-                enum: ['Point'],
-                default: 'Point',
-            },
-            coordinates: {
-                type: [Number], // [longitude, latitude]
-                default: [0, 0],
-            },
-        },
-        address: {
-            type: String,
-            default: '',
-        },
-        exif: {
-            camera: String,
-            lens: String,
-            iso: Number,
-            aperture: String,
-            shutterSpeed: String,
-            focalLength: String,
-            timestamp: Date,
-        },
-        tags: [String],
-        notes: {
-            type: String,
-            default: '',
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            index: '2dsphere',
         },
     },
-    { timestamps: true }
-);
-
-imageSchema.index({ location: '2dsphere' });
+    address: String,
+    capturedAt: Date,
+}, {
+    timestamps: true,
+});
 
 module.exports = mongoose.model('Image', imageSchema);

@@ -9,37 +9,34 @@ import Settings from './pages/Settings';
 import Upload from './pages/Upload';
 import Editor from './pages/Editor';
 
-function PrivateRoute({ children }) {
-    const { user, loading } = useAuth();
-    if (loading) return null;
-    return user ? children : <Navigate to="/login" replace />;
-}
+import Home from './pages/Home';
 
 function AppRoutes() {
     const { user, loading } = useAuth();
 
-    if (loading) return null;
-
-    if (!user) {
-        return (
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-        );
-    }
+    if (loading) return <div className="loading-screen">Loading...</div>;
 
     return (
         <div className="app-layout">
             <Sidebar />
             <main className="app-main">
                 <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/gallery" element={<Gallery />} />
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
                     <Route path="/upload" element={<Upload />} />
                     <Route path="/editor" element={<Editor />} />
-                    <Route path="/map" element={<MapView />} />
-                    <Route path="/settings" element={<Settings />} />
+                    <Route
+                        path="/login"
+                        element={!user ? <Login /> : <Navigate to="/dashboard" replace />}
+                    />
+
+                    {/* Admin Routes */}
+                    <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+                    <Route path="/gallery" element={user ? <Gallery /> : <Navigate to="/login" />} />
+                    <Route path="/map" element={user ? <MapView /> : <Navigate to="/login" />} />
+                    <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
+
+                    {/* Catch-all */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </main>

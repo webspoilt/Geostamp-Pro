@@ -1,17 +1,20 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const {
     uploadImage,
     getImages,
-    getImage,
+    getImageById,
     deleteImage,
 } = require('../controllers/imageController');
-const { protect } = require('../middleware/auth');
-const upload = require('../middleware/upload');
 
-router.use(protect);
+// Public routes
+router.post('/', upload.single('image'), uploadImage);
+router.get('/:id', getImageById);
 
-router.route('/').post(upload.single('image'), uploadImage).get(getImages);
-router.route('/:id').get(getImage).delete(deleteImage);
+// Protected routes (Admin only for list/delete)
+router.get('/', protect, getImages);
+router.delete('/:id', protect, deleteImage);
 
 module.exports = router;

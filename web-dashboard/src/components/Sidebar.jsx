@@ -1,16 +1,25 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
-const navItems = [
-    { to: '/', icon: '📊', label: 'Dashboard' },
-    { to: '/upload', icon: '📤', label: 'Upload' },
-    { to: '/editor', icon: '✏️', label: 'Editor' },
-    { to: '/gallery', icon: '🖼️', label: 'Gallery' },
-    { to: '/map', icon: '🗺️', label: 'Map View' },
-    { to: '/settings', icon: '⚙️', label: 'Settings' },
-];
-
 export default function Sidebar() {
+    const { user, logout } = useAuth();
+
+    const navItems = [
+        { to: '/', icon: '🏠', label: 'Home', public: true },
+        { to: '/upload', icon: '📤', label: 'Upload', public: true },
+        { to: '/editor', icon: '✏️', label: 'Editor', public: true },
+        // Admin only
+        { to: '/dashboard', icon: '📊', label: 'Dashboard', admin: true },
+        { to: '/gallery', icon: '🖼️', label: 'Gallery', admin: true },
+        { to: '/map', icon: '🗺️', label: 'Map View', admin: true },
+        { to: '/settings', icon: '⚙️', label: 'Settings', admin: true },
+    ];
+
+    const filteredItems = navItems.filter(item =>
+        item.public || (user && item.admin)
+    );
+
     return (
         <aside className="sidebar">
             <div className="sidebar-logo">
@@ -19,7 +28,7 @@ export default function Sidebar() {
             </div>
 
             <nav className="sidebar-nav">
-                {navItems.map((item) => (
+                {filteredItems.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
@@ -35,7 +44,17 @@ export default function Sidebar() {
             </nav>
 
             <div className="sidebar-footer">
-                <p>v1.0.0</p>
+                {user ? (
+                    <button className="nav-item logout-btn" onClick={logout}>
+                        <span className="nav-icon">🚪</span>
+                        <span className="nav-label">Logout</span>
+                    </button>
+                ) : (
+                    <NavLink to="/login" className="nav-item login-btn">
+                        <span className="nav-icon">🔐</span>
+                        <span className="nav-label">Admin Login</span>
+                    </NavLink>
+                )}
             </div>
         </aside>
     );

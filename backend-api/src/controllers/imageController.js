@@ -2,7 +2,7 @@ const Image = require('../models/Image');
 const fs = require('fs');
 const path = require('path');
 
-// POST /api/images – upload image
+// POST /api/images – upload image (Public)
 exports.uploadImage = async (req, res) => {
     try {
         if (!req.file) {
@@ -12,11 +12,11 @@ exports.uploadImage = async (req, res) => {
         const { latitude, longitude, address, tags, notes } = req.body;
 
         const image = await Image.create({
-            user: req.user._id,
+            user: req.user ? req.user._id : undefined, // Optional user
             filename: req.file.filename,
             originalName: req.file.originalname,
             path: req.file.path,
-            mimetype: req.file.mimetype,
+            mimeType: req.file.mimetype,
             size: req.file.size,
             location: {
                 type: 'Point',
@@ -36,19 +36,20 @@ exports.uploadImage = async (req, res) => {
     }
 };
 
-// GET /api/images – list user images
+// GET /api/images – list all images (Admin only)
 exports.getImages = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        const images = await Image.find({ user: req.user._id })
+        // Admin sees all images
+        const images = await Image.find({})
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
-        const total = await Image.countDocuments({ user: req.user._id });
+        const total = await Image.countDocuments({});
 
         res.json({ images, page, pages: Math.ceil(total / limit), total });
     } catch (error) {
@@ -56,13 +57,10 @@ exports.getImages = async (req, res) => {
     }
 };
 
-// GET /api/images/:id
-exports.getImage = async (req, res) => {
+// GET /api/images/:id (Public)
+exports.getImageById = async (req, res) => {
     try {
-        const image = await Image.findOne({
-            _id: req.params.id,
-            user: req.user._id,
-        });
+        const image = await Image.findById(req.params.id);
 
         if (!image) {
             return res.status(404).json({ message: 'Image not found' });
@@ -74,13 +72,10 @@ exports.getImage = async (req, res) => {
     }
 };
 
-// DELETE /api/images/:id
+// DELETE /api/images/:id (Admin only)
 exports.deleteImage = async (req, res) => {
     try {
-        const image = await Image.findOne({
-            _id: req.params.id,
-            user: req.user._id,
-        });
+        const image = await Image.findById(req.params.id);
 
         if (!image) {
             return res.status(404).json({ message: 'Image not found' });

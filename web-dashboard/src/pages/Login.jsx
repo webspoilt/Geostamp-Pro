@@ -31,9 +31,9 @@ export default function Login() {
         <div className="login-page">
             <div className="login-card glass">
                 <div className="login-header">
-                    <span className="login-logo">📍</span>
-                    <h1>GeoStamp Pro</h1>
-                    <p>GPS Timestamp Camera & Editor</p>
+                    <span className="login-logo">🔐</span>
+                    <h1>Admin Access</h1>
+                    <p>GeoStamp Pro Management</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
