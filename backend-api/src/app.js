@@ -1,17 +1,19 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+// Debug: log available env var keys (NOT values, for security)
+console.log('🔍 Available env vars:', Object.keys(process.env).filter(k =>
+    ['MONGO_URI', 'MONGODB_URI', 'DATABASE_URL', 'JWT_SECRET', 'NODE_ENV', 'PORT', 'RENDER'].includes(k)
+));
+console.log('🔍 MONGO_URI is:', process.env.MONGO_URI ? 'SET ✅' : 'MISSING ❌');
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
 
-// Startup checks
-if (!process.env.MONGO_URI) {
-    console.error('❌ MONGO_URI environment variable is not set!');
-    console.error('   Set it in Render dashboard → Environment → Add MONGO_URI');
-    process.exit(1);
-}
+// Use MONGO_URI or fallback to MONGODB_URI or DATABASE_URL
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DATABASE_URL;
+const connectDB = require('./config/db');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
