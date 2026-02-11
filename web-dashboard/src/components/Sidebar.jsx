@@ -44,16 +44,11 @@ export default function Sidebar() {
             </nav>
 
             <div className="sidebar-footer">
-                {user ? (
+                {user && (
                     <button className="nav-item logout-btn" onClick={logout}>
                         <span className="nav-icon">🚪</span>
                         <span className="nav-label">Logout</span>
                     </button>
-                ) : (
-                    <NavLink to="/login" className="nav-item login-btn">
-                        <span className="nav-icon">🔐</span>
-                        <span className="nav-label">Admin Login</span>
-                    </NavLink>
                 )}
             </div>
         </aside>
