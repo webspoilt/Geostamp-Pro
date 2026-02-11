@@ -1,9 +1,17 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const path = require('path');
 const connectDB = require('./config/db');
+
+// Startup checks
+if (!process.env.MONGO_URI) {
+    console.error('❌ MONGO_URI environment variable is not set!');
+    console.error('   Set it in Render dashboard → Environment → Add MONGO_URI');
+    process.exit(1);
+}
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
