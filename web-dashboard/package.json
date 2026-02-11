@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@vercel/analytics": "^1.6.1",
         "axios": "^1.7.9",
         "exifreader": "^4.36.1",
         "react": "^18.3.1",
