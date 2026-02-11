@@ -1,0 +1,19 @@
+{
+    "buildCommand": "cd web-dashboard && npm install && npm run build",
+    "outputDirectory": "web-dashboard/dist",
+    "installCommand": "cd web-dashboard && npm install",
+    "framework": "vite",
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "https://your-backend-api.com/api/$1"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ]
+}
