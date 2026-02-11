@@ -3,7 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Debug: log available env var keys (NOT values, for security)
 console.log('🔍 Available env vars:', Object.keys(process.env).filter(k =>
-    ['MONGO_URI', 'MONGODB_URI', 'DATABASE_URL', 'JWT_SECRET', 'NODE_ENV', 'PORT', 'RENDER'].includes(k)
+    ['MONGO_URI', 'MONGO_URL', 'MONGODB_URI', 'DATABASE_URL', 'JWT_SECRET', 'NODE_ENV', 'PORT', 'RENDER'].includes(k)
 ));
 console.log('🔍 MONGO_URI is:', process.env.MONGO_URI ? 'SET ✅' : 'MISSING ❌');
 
