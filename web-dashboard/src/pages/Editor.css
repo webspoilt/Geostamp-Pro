@@ -1,0 +1,167 @@
+.editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    height: calc(100vh - 140px);
+}
+
+@media (max-width: 1000px) {
+    .editor-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+}
+
+/* ---- Canvas area ---- */
+.editor-canvas-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    position: relative;
+    min-height: 400px;
+}
+
+.editor-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+}
+
+.editor-empty {
+    text-align: center;
+    cursor: pointer;
+    padding: 40px;
+}
+
+.editor-empty span {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.editor-empty p {
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+}
+
+/* ---- Controls panel ---- */
+.editor-controls {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.editor-load-btn {
+    width: 100%;
+}
+
+.ctrl-section {
+    border-top: 1px solid var(--color-border);
+    padding-top: 14px;
+}
+
+.ctrl-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 12px;
+}
+
+.ctrl-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.editor-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.editor-controls input[type="text"],
+.editor-controls input[type="number"],
+.editor-controls input[type="date"],
+.editor-controls input[type="time"] {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: 13px;
+    outline: none;
+    transition: var(--transition);
+}
+
+.editor-controls input:focus {
+    border-color: var(--color-accent);
+}
+
+.editor-controls select {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: 13px;
+    outline: none;
+}
+
+.editor-controls input[type="range"] {
+    width: 100%;
+    accent-color: var(--color-accent);
+}
+
+.editor-controls input[type="color"] {
+    width: 40px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.ctrl-check {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px !important;
+    cursor: pointer;
+}
+
+.ctrl-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+}
+
+.ctrl-val {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-family: monospace;
+}
+
+/* ---- Actions ---- */
+.ctrl-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+}
+
+.ctrl-actions .btn {
+    width: 100%;
+    padding: 14px;
+}

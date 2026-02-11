@@ -3,6 +3,8 @@ import './Sidebar.css';
 
 const navItems = [
     { to: '/', icon: '📊', label: 'Dashboard' },
+    { to: '/upload', icon: '📤', label: 'Upload' },
+    { to: '/editor', icon: '✏️', label: 'Editor' },
     { to: '/gallery', icon: '🖼️', label: 'Gallery' },
     { to: '/map', icon: '🗺️', label: 'Map View' },
     { to: '/settings', icon: '⚙️', label: 'Settings' },

@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import './PhotoCard.css';
 
 export default function PhotoCard({ image }) {
+    const navigate = useNavigate();
     const apiBase = import.meta.env.VITE_API_URL || '';
     const src = image?.filename
         ? `${apiBase.replace('/api', '')}/uploads/${image.filename}`
@@ -25,6 +27,14 @@ export default function PhotoCard({ image }) {
                         : ''}
                 </p>
             </div>
+            {image?._id && (
+                <button
+                    className="photo-edit-btn"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/editor?id=${image._id}`); }}
+                >
+                    ✏️ Edit
+                </button>
+            )}
         </div>
     );
 }

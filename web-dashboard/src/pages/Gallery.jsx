@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import PhotoCard from '../components/PhotoCard';
 import api from '../services/api';
@@ -25,6 +26,10 @@ export default function Gallery() {
         <>
             <Header title="Gallery" />
             <div className="page-content">
+                <div className="gallery-toolbar">
+                    <Link to="/upload" className="btn btn-primary">📤 Upload Image</Link>
+                    <Link to="/editor" className="btn btn-ghost">✏️ Open Editor</Link>
+                </div>
                 {loading ? (
                     <p className="gallery-loading">Loading…</p>
                 ) : images.length === 0 ? (
