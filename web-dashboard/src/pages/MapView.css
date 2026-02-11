@@ -1,0 +1,11 @@
+.map-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.map-note {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
