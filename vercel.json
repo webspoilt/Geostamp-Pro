@@ -3,11 +3,13 @@
     "outputDirectory": "web-dashboard/dist",
     "installCommand": "cd web-dashboard && npm install",
     "framework": "vite",
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "https://your-backend-api.com/api/$1"
-        },
+            "source": "/api/:path*",
+            "destination": "https://geostamp-pro.onrender.com/api/:path*"
+        }
+    ],
+    "routes": [
         {
             "handle": "filesystem"
         },
