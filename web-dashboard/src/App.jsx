@@ -44,14 +44,18 @@ function AppRoutes() {
     );
 }
 
-import { Analytics } from '@vercel/analytics/react';
+import { inject } from '@vercel/analytics';
+import { useEffect } from 'react';
 
 export default function App() {
+    useEffect(() => {
+        inject();
+    }, []);
+
     return (
         <BrowserRouter>
             <AuthProvider>
                 <AppRoutes />
-                <Analytics />
             </AuthProvider>
         </BrowserRouter>
     );
