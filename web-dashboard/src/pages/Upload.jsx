@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExifReader from 'exifreader';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import api from '../services/api';
 import './Upload.css';
 
 export default function Upload() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const fileRef = useRef(null);
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -184,9 +186,15 @@ export default function Upload() {
                         </div>
 
                         <div className="upload-actions">
-                            <button type="submit" className="btn btn-primary" disabled={!file || uploading}>
-                                {uploading ? 'Uploading…' : '☁️ Upload to Cloud'}
-                            </button>
+                            {user ? (
+                                <button type="submit" className="btn btn-primary" disabled={!file || uploading}>
+                                    {uploading ? 'Uploading…' : '☁️ Upload to Cloud'}
+                                </button>
+                            ) : (
+                                <div className="auth-message">
+                                    <p>Login to save to cloud 🔒</p>
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 className="btn btn-ghost"
