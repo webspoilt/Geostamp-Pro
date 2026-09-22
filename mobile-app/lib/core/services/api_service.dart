@@ -6,6 +6,8 @@ class ApiService {
   late Dio _dio;
   String _baseUrl = AppConstants.defaultApiUrl;
 
+  String get baseUrl => _baseUrl;
+
   ApiService() {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,

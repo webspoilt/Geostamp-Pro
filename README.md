@@ -1,125 +1,104 @@
 # GeoStamp Pro Suite
 
-A production-ready **GPS Timestamp Camera & Editor** application with cloud sync capabilities.
+A production-grade, hardened **GPS Timestamp Camera & Editor** platform with cloud synchronization, interactive OpenStreetMap exploration, and dual-layer local/S3-R2 storage.
+
+[![CI Pipeline](https://github.com/webspoilt/Geostamp-Pro/actions/workflows/ci.yml/badge.svg)](https://github.com/webspoilt/Geostamp-Pro/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ```
 geostamp-pro/
-├── mobile-app/          # Flutter mobile application
-├── web-dashboard/       # React + Vite web dashboard
-├── backend-api/         # Node.js Express REST API
+├── mobile-app/          # Flutter mobile app (Secure KeyStore, On-Device GPS Stamper, Gallery)
+├── web-dashboard/       # React + Leaflet OpenStreetMap dashboard + Canvas Stamp Editor
+├── backend-api/         # Node.js Express API (Helmet, Rate Limiter, S3/R2 Storage, 2dsphere Geo)
+├── docker-compose.yml   # Multi-container orchestration (API + MongoDB)
 └── README.md
 ```
 
 ---
 
-## Prerequisites
+## 🔒 Security & Architecture Highlights
 
-| Tool             | Version  |
-|------------------|----------|
-| Node.js          | 18+      |
-| npm              | 9+       |
-| Flutter SDK      | 3.0+     |
-| MongoDB          | 6+ (or Atlas) |
-| Android Studio   | Latest   |
-| Xcode (macOS)    | Latest   |
+- **Strict Access Control**: Zero public upload holes. All image queries and files are scoped strictly to the authenticated owner (or admin role).
+- **Dual-Storage Engine**: Direct AWS S3 / Cloudflare R2 object storage with presigned URLs, with automatic zero-dependency local disk fallback for development.
+- **Image Sanitization**: Uses `sharp` and `heic-convert` to strip dangerous payloads, convert iPhone `.heic` files to JPEG, and generate 400px thumbnails.
+- **Null Island & Geo Guard**: Strictly rejects coordinates `(0, 0)` and invalid GPS inputs with HTTP `422 Unprocessable Entity`.
+- **Infrastructure Protection**: Reverse-proxy trust configuration (`trust proxy = 1`), brute-force rate limiters, anti-injection query guards, and clamped pagination ($\le 100$).
+- **Hardware-Backed Mobile Auth**: Sensitive tokens stored via `FlutterSecureStorage` (iOS Keychain / Android Keystore).
 
 ---
 
 ## Quick Start
 
-### 1. Backend API
+### 1. Run with Docker Compose (Recommended)
 
 ```bash
+docker compose up -d
+```
+The API is available at `http://localhost:5000` and MongoDB is auto-initialized with persistent volumes and healthchecks.
+
+### 2. Manual Development Setup
+
+#### Backend API
+```bash
 cd backend-api
-cp .env.example .env        # edit MONGO_URI & JWT_SECRET
+cp .env.example .env        # Configure MONGO_URI and JWT_SECRET
 npm install
-npm run dev                  # → http://localhost:5000
+npm test                    # Run Jest regression test suite
+npm run dev                 # Starts at http://localhost:5000
 ```
 
-### 2. Web Dashboard
-
+#### Web Dashboard
 ```bash
 cd web-dashboard
 npm install
-npm run dev                  # → http://localhost:5173
+npm run dev                 # Starts at http://localhost:5173
 ```
+> The Vite development server automatically proxies `/api` calls to `localhost:5000`.
 
-> The Vite dev server proxies `/api` requests to `localhost:5000` automatically.
-
-### 3. Mobile App
-
+#### Mobile App
 ```bash
 cd mobile-app
 flutter pub get
-flutter run                  # launches on connected device / emulator
+flutter run                 # Launches on Android/iOS/Web
 ```
 
 ---
 
-## Deployment
+## 📍 API Reference
 
-### Backend → Railway / Render / Docker
-
-```bash
-# Railway
-npm i -g railway && railway login && railway init && railway up
-
-# Docker
-docker build -t geostamp-api .
-docker run -p 5000:5000 -e MONGO_URI=<uri> -e JWT_SECRET=<secret> geostamp-api
-```
-
-### Web Dashboard → Vercel / Netlify
-
-```bash
-cd web-dashboard
-echo "VITE_API_URL=https://your-api.com/api" > .env
-npm run build
-npx vercel --prod
-```
-
-### Mobile → Play Store / App Store
-
-```bash
-# Android release
-flutter build apk --release
-
-# iOS release
-flutter build ipa --release
-```
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | ✗ | Register new user account |
+| POST | `/api/auth/login` | ✗ | Authenticate & acquire JWT (Rate limited) |
+| GET | `/api/auth/profile` | ✓ | Current user profile |
+| GET | `/api/images/nearby` | ✓ | Viewport geo query using MongoDB `$near` 2dsphere |
+| GET | `/api/images` | ✓ | List user's photos (clamped pagination $\le 100$) |
+| POST | `/api/images` | ✓ | Upload & sanitize photo (multipart with GPS coords) |
+| GET | `/api/images/:id` | ✓ | Get photo metadata (owner or admin only) |
+| GET | `/api/images/:id/file` | ✓ | Stream full photo or redirect to S3 presigned URL |
+| GET | `/api/images/:id/thumb` | ✓ | Stream 400px thumbnail or redirect to S3 presigned URL |
+| DELETE | `/api/images/:id` | ✓ | Delete photo and remove files from storage |
+| GET | `/api/locations` | ✓ | List user's saved project locations |
+| POST | `/api/locations` | ✓ | Save custom location coordinate |
 
 ---
 
-## Environment Variables (Backend)
+## 🛠️ Admin CLI Tools
 
-| Variable        | Description                     | Required |
-|-----------------|---------------------------------|----------|
-| `PORT`          | Server port (default 5000)      | No       |
-| `MONGO_URI`     | MongoDB connection string       | **Yes**  |
-| `JWT_SECRET`    | JWT signing key (≥ 32 chars)    | **Yes**  |
-| `JWT_EXPIRES_IN`| Token lifetime (default `7d`)   | No       |
-| `CORS_ORIGIN`   | Allowed CORS origin             | No       |
+Promote an existing user to admin:
+```bash
+cd backend-api
+npm run make-admin -- user@example.com
+```
 
----
-
-## API Endpoints
-
-| Method | Endpoint              | Auth | Description          |
-|--------|-----------------------|------|----------------------|
-| POST   | `/api/auth/register`  | ✗    | Create account       |
-| POST   | `/api/auth/login`     | ✗    | Sign in              |
-| GET    | `/api/auth/profile`   | ✓    | Get current user     |
-| GET    | `/api/images`         | ✓    | List images (paged)  |
-| POST   | `/api/images`         | ✓    | Upload image         |
-| GET    | `/api/images/:id`     | ✓    | Get image details    |
-| DELETE | `/api/images/:id`     | ✓    | Delete image         |
-| GET    | `/api/locations`      | ✓    | List saved locations |
-| POST   | `/api/locations`      | ✓    | Create location      |
-| PUT    | `/api/locations/:id`  | ✓    | Update location      |
-| DELETE | `/api/locations/:id`  | ✓    | Delete location      |
+Migrate local uploads to AWS S3 or Cloudflare R2:
+```bash
+cd backend-api
+node scripts/migrate-uploads-to-s3.js
+```
 
 ---
 
 ## License
 
-MIT
+Released under the [MIT License](LICENSE). Copyright (c) 2026 GeoStamp Pro.
