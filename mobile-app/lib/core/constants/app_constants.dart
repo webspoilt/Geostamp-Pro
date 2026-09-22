@@ -4,8 +4,10 @@ class AppConstants {
   static const String appName = 'GeoStamp Pro';
   static const String appVersion = '1.0.0';
 
-  // API
-  static const String defaultApiUrl = 'http://10.0.2.2:5000'; // Android emulator localhost
+  // API: Enforce HTTPS in production/release mode; use emulator localhost only in debug mode
+  static const String defaultApiUrl = bool.fromEnvironment('dart.vm.product')
+      ? 'https://api.geostamp.pro'
+      : 'http://10.0.2.2:5000'; // Debug fallback for Android emulator
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // Storage keys

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./backend-api
+      dockerfile: Dockerfile
+    container_name: geostamp-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/geostamp-pro
+      - JWT_SECRET=change-this-to-a-secure-production-secret-min-32-chars
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:5173,http://localhost:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - geostamp-uploads:/app/uploads
+
+  mongo:
+    image: mongo:7-jammy
+    container_name: geostamp-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - geostamp-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  geostamp-mongo-data:
+  geostamp-uploads:

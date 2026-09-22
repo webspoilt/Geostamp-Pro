@@ -34,8 +34,8 @@ export default function Editor() {
         if (!imageId) return;
         api.get(`/images/${imageId}`).then((res) => {
             const img = res.data;
-            const apiBase = (import.meta.env.VITE_API_URL || '').replace('/api', '');
-            setImageSrc(`${apiBase}/uploads/${img.filename}`);
+            const apiBase = import.meta.env.VITE_API_URL || '';
+            setImageSrc(`${apiBase}/images/${img._id}/file`);
             setMeta({
                 lat: img.location?.coordinates?.[1]?.toString() || '',
                 lng: img.location?.coordinates?.[0]?.toString() || '',

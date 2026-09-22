@@ -20,7 +20,15 @@ const imageSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: false, // Changed from true to false for anonymous uploads
+        required: true,
+    },
+    thumbnailFilename: {
+        type: String,
+    },
+    storageProvider: {
+        type: String,
+        enum: ['local', 's3'],
+        default: 'local',
     },
     location: {
         type: {
@@ -30,13 +38,30 @@ const imageSchema = new mongoose.Schema({
         },
         coordinates: {
             type: [Number], // [longitude, latitude]
-            index: '2dsphere',
+            required: true,
         },
     },
-    address: String,
-    capturedAt: Date,
+    address: {
+        type: String,
+        default: '',
+    },
+    tags: [{
+        type: String,
+        trim: true,
+    }],
+    notes: {
+        type: String,
+        default: '',
+    },
+    capturedAt: {
+        type: Date,
+        default: Date.now,
+    },
 }, {
     timestamps: true,
 });
+
+imageSchema.index({ location: '2dsphere' });
+imageSchema.index({ user: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Image', imageSchema);

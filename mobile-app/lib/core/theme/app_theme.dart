@@ -66,7 +66,7 @@ class AppTheme {
           ),
           hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: surface,
           elevation: 0,
           shape: RoundedRectangleBorder(

@@ -5,22 +5,39 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test": "jest --runInBand --detectOpenHandles",
+    "make-admin": "node scripts/make-admin.js"
   },
-  "keywords": ["geostamp", "gps", "camera", "timestamp"],
+  "keywords": [
+    "geostamp",
+    "gps",
+    "camera",
+    "timestamp"
+  ],
   "author": "GeoStamp Pro",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1137.0",
+    "@aws-sdk/s3-request-presigner": "^3.1137.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "express-validator": "^7.3.2",
+    "heic-convert": "^2.1.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "morgan": "^1.10.0"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^11.3.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.3.0"
   }
 }

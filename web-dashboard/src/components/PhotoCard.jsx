@@ -4,8 +4,8 @@ import './PhotoCard.css';
 export default function PhotoCard({ image }) {
     const navigate = useNavigate();
     const apiBase = import.meta.env.VITE_API_URL || '';
-    const src = image?.filename
-        ? `${apiBase.replace('/api', '')}/uploads/${image.filename}`
+    const src = image?._id
+        ? `${apiBase}/images/${image._id}/thumb`
         : 'https://placehold.co/400x300/1a1f2e/444?text=No+Image';
 
     const coords =
