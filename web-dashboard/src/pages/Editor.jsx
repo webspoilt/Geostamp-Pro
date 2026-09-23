@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import ExifReader from 'exifreader';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import MapLocationModal from '../components/MapLocationModal';
 import api from '../services/api';
 import './Editor.css';
 // ... (STAMP_FORMATS and DEFAULT_STAMP constants remain unchanged)
@@ -15,6 +16,7 @@ export default function Editor() {
 
     const [imageSrc, setImageSrc] = useState(null);
     const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
+    const [isMapModalOpen, setIsMapModalOpen] = useState(false);
     const [meta, setMeta] = useState({
         lat: searchParams.get('lat') || '',
         lng: searchParams.get('lng') || '',
@@ -235,7 +237,17 @@ export default function Editor() {
 
                         {/* Metadata */}
                         <div className="ctrl-section">
-                            <h3>📍 GPS Coordinates</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <h3 style={{ margin: 0 }}>📍 GPS Coordinates</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost"
+                                    style={{ padding: '3px 8px', fontSize: '11px', borderColor: '#00d4ff', color: '#00d4ff' }}
+                                    onClick={() => setIsMapModalOpen(true)}
+                                >
+                                    🗺️ Pick from Map
+                                </button>
+                            </div>
                             <div className="ctrl-row">
                                 <label>Lat <input type="number" step="any" value={meta.lat} onChange={(e) => setMeta({ ...meta, lat: e.target.value })} /></label>
                                 <label>Lng <input type="number" step="any" value={meta.lng} onChange={(e) => setMeta({ ...meta, lng: e.target.value })} /></label>
@@ -311,6 +323,21 @@ export default function Editor() {
                     </div>
                 </div>
             </div>
+
+            <MapLocationModal
+                isOpen={isMapModalOpen}
+                onClose={() => setIsMapModalOpen(false)}
+                initialLat={meta.lat}
+                initialLng={meta.lng}
+                onConfirm={({ lat, lng, address }) => {
+                    setMeta((prev) => ({
+                        ...prev,
+                        lat,
+                        lng,
+                        address: address || prev.address,
+                    }));
+                }}
+            />
         </>
     );
 }

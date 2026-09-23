@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ExifReader from 'exifreader';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import MapLocationModal from '../components/MapLocationModal';
 import api from '../services/api';
 import './Upload.css';
 
@@ -12,6 +13,7 @@ export default function Upload() {
     const fileRef = useRef(null);
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
+    const [isMapModalOpen, setIsMapModalOpen] = useState(false);
     const [form, setForm] = useState({
         latitude: '',
         longitude: '',
@@ -127,7 +129,17 @@ export default function Upload() {
 
                     {/* Metadata form */}
                     <form className="upload-form glass" onSubmit={handleSubmit}>
-                        <h2>Image Details</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ margin: 0 }}>Image Details</h2>
+                            <button
+                                type="button"
+                                className="btn btn-ghost"
+                                style={{ padding: '4px 10px', fontSize: '12px', borderColor: '#00d4ff', color: '#00d4ff' }}
+                                onClick={() => setIsMapModalOpen(true)}
+                            >
+                                🗺️ Choose from Map
+                            </button>
+                        </div>
 
                         {exifExtracted && (
                             <div className="exif-badge">✅ GPS extracted from EXIF</div>
@@ -209,6 +221,21 @@ export default function Upload() {
                     </form>
                 </div>
             </div>
+
+            <MapLocationModal
+                isOpen={isMapModalOpen}
+                onClose={() => setIsMapModalOpen(false)}
+                initialLat={form.latitude}
+                initialLng={form.longitude}
+                onConfirm={({ lat, lng, address }) => {
+                    setForm((prev) => ({
+                        ...prev,
+                        latitude: lat,
+                        longitude: lng,
+                        address: address || prev.address,
+                    }));
+                }}
+            />
         </>
     );
 }
