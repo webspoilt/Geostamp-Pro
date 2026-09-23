@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/widgets/ad_banner_widget.dart';
+import '../../core/widgets/premium_upgrade_dialog.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -46,56 +50,74 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sub = Provider.of<SubscriptionService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My GeoStamp Gallery'),
         actions: [
+          if (!sub.isPremium)
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.amber,
+              ),
+              icon: const Icon(Icons.workspace_premium, size: 16),
+              label: const Text('PRO ₹99', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              onPressed: () => PremiumUpgradeDialog.show(context),
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _fetchImages,
           ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00D4FF)))
-          : _images.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.photo_library, size: 64, color: Colors.white.withOpacity(0.2)),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No photos yet',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 16,
+      body: Column(
+        children: [
+          const AdBannerWidget(
+            title: 'Sponsored: Pro Drone & GPS Mapping',
+            subtitle: 'Real-time centimetre accuracy GNSS RTK systems.',
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF00D4FF)))
+                : _images.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.photo_library, size: 64, color: Colors.white.withOpacity(0.2)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No photos yet',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Capture photos from the Camera tab',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.3),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Capture photos from the Camera tab',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.3),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchImages,
-                  color: const Color(0xFF00D4FF),
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 0.8,
-                    ),
-                    itemCount: _images.length,
-                    itemBuilder: (context, i) {
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _fetchImages,
+                        color: const Color(0xFF00D4FF),
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(12),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.8,
+                          ),
+                          itemCount: _images.length,
+                          itemBuilder: (context, i) {
                       final item = _images[i];
                       final coords = item['location']?['coordinates'];
                       final lat = coords != null && coords.length == 2 ? coords[1] : null;
@@ -158,10 +180,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             ),
                           ],
                         ),
-                      );
                     },
                   ),
                 ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF0A0E17),
         selectedItemColor: const Color(0xFF00D4FF),

@@ -2,9 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/stamper_service.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/widgets/ad_banner_widget.dart';
+import '../../core/widgets/premium_upgrade_dialog.dart';
 import 'widgets/map_picker_sheet.dart';
 
 class EditorScreen extends StatefulWidget {
@@ -54,7 +58,15 @@ class _EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  bool _isGalleryImage = false;
+
   Future<void> _pickImageFromGallery() async {
+    final sub = Provider.of<SubscriptionService>(context, listen: false);
+    if (!sub.canEditFromGallery()) {
+      await PremiumUpgradeDialog.show(context);
+      return;
+    }
+
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 2048,
@@ -65,6 +77,7 @@ class _EditorScreenState extends State<EditorScreen> {
       setState(() {
         _selectedFile = File(picked.path);
         _stampedFile = null;
+        _isGalleryImage = true;
       });
     }
   }
@@ -80,6 +93,7 @@ class _EditorScreenState extends State<EditorScreen> {
       setState(() {
         _selectedFile = File(picked.path);
         _stampedFile = null;
+        _isGalleryImage = false;
       });
     }
   }
@@ -186,6 +200,12 @@ class _EditorScreenState extends State<EditorScreen> {
       return;
     }
 
+    final sub = Provider.of<SubscriptionService>(context, listen: false);
+    if (_isGalleryImage && !sub.canEditFromGallery()) {
+      await PremiumUpgradeDialog.show(context);
+      return;
+    }
+
     final lat = double.tryParse(_latController.text);
     final lng = double.tryParse(_lngController.text);
 
@@ -211,10 +231,18 @@ class _EditorScreenState extends State<EditorScreen> {
         _stampedFile = stamped;
       });
 
+      // Record edit quota if image was loaded from gallery
+      if (_isGalleryImage) {
+        await sub.recordGalleryEdit();
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Stamp applied with custom date & map location!')),
         );
+
+        // Show interstitial ad for free users
+        InterstitialAdDialog.show(context, onDismiss: () {});
       }
     } catch (e) {
       if (mounted) {
@@ -266,6 +294,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sub = Provider.of<SubscriptionService>(context);
     final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDateTime);
     final formattedTime = DateFormat('HH:mm:ss').format(_selectedDateTime);
 
@@ -273,6 +302,15 @@ class _EditorScreenState extends State<EditorScreen> {
       appBar: AppBar(
         title: const Text('GeoStamp Editor & Gallery'),
         actions: [
+          if (!sub.isPremium)
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.amber,
+              ),
+              icon: const Icon(Icons.workspace_premium, size: 16),
+              label: const Text('PRO ₹99', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              onPressed: () => PremiumUpgradeDialog.show(context),
+            ),
           IconButton(
             icon: const Icon(Icons.add_a_photo),
             tooltip: 'Take Photo',
@@ -290,6 +328,56 @@ class _EditorScreenState extends State<EditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Quota Bar / Pro Status Bar
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: sub.isPremium ? Colors.amber.withOpacity(0.12) : const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: sub.isPremium ? Colors.amber.withOpacity(0.4) : Colors.white12,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    sub.isPremium ? Icons.workspace_premium : Icons.lock_clock,
+                    color: sub.isPremium ? Colors.amber : const Color(0xFF00D4FF),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      sub.isPremium
+                          ? '⭐ PRO Member · Unlimited Gallery Edits'
+                          : 'Gallery Limit: ${sub.remainingFreeEdits()} free edit remaining today',
+                      style: TextStyle(
+                        color: sub.isPremium ? Colors.amber : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  if (!sub.isPremium)
+                    GestureDetector(
+                      onTap: () => PremiumUpgradeDialog.show(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00D4FF),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          '₹99/mo',
+                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
             // Image Preview Container
             GestureDetector(
               onTap: _pickImageFromGallery,
@@ -357,7 +445,14 @@ class _EditorScreenState extends State<EditorScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // In-App Ad Banner for free users
+            const AdBannerWidget(
+              title: '⭐ Pro GPS & Geocaching Gear',
+              subtitle: 'Precision measuring tools & laser levels up to 35% off.',
+            ),
+            const SizedBox(height: 12),
 
             // Date & Time Picker Section
             Container(

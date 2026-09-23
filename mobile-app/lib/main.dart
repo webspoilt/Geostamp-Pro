@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/subscription_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/api_service.dart';
 import 'features/camera/camera_screen.dart';
@@ -20,6 +21,7 @@ class GeoStampApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => SubscriptionService()),
         Provider(create: (_) => ApiService()),
       ],
       child: MaterialApp(

@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/stamper_service.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/widgets/ad_banner_widget.dart';
+import '../../core/widgets/premium_upgrade_dialog.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -217,12 +221,18 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('📸 High-quality GeoStamped photo captured & saved!')),
           );
+
+          // Show interstitial ad for free users on photo save
+          InterstitialAdDialog.show(context, onDismiss: () {});
         }
       } catch (uploadError) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Photo stamped on device. Cloud: $uploadError')),
           );
+
+          // Still show interstitial ad for free users
+          InterstitialAdDialog.show(context, onDismiss: () {});
         }
       }
     } catch (e) {
@@ -246,6 +256,38 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         backgroundColor: Colors.black87,
         title: const Text('GeoStamp Camera Pro', style: TextStyle(fontSize: 16)),
         actions: [
+          Consumer<SubscriptionService>(
+            builder: (context, sub, _) {
+              if (sub.isPremium) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, color: Colors.amber, size: 14),
+                      SizedBox(width: 4),
+                      Text('PRO', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 11)),
+                    ],
+                  ),
+                );
+              }
+              return TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.amber,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                icon: const Icon(Icons.workspace_premium, size: 16),
+                label: const Text('PRO ₹99', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () => PremiumUpgradeDialog.show(context),
+              );
+            },
+          ),
           if (_cameraController != null && _cameraController!.value.isInitialized)
             IconButton(
               icon: Icon(
@@ -394,14 +436,22 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             ),
           ),
 
-          // 4. Bottom Controls: Shutter button & review
+          // 4. Bottom Controls: Shutter button, ad banner & review
           Positioned(
-            bottom: 24,
+            bottom: 16,
             left: 0,
             right: 0,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // In-Camera Ad Banner for Free Users
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: AdBannerWidget(
+                    title: 'Sponsored: High-Precision GPS Tools',
+                    subtitle: 'Compact RTK & Handheld GPS for Field Pros.',
+                  ),
+                ),
                 if (_lastCapturedFile != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
