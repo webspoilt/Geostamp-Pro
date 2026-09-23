@@ -12,11 +12,15 @@ exports.uploadImage = async (req, res) => {
         const { address, tags, notes, capturedAt } = req.body;
         const coordinates = req.parsedCoordinates; // set by coordinatesValidator
 
-        // Sanitize, strip bad payloads, convert HEIC if needed, generate 400px thumb
+        // Clean all pre-existing metadata, then inject verified edited GPS/timestamp metadata
         const processed = await processImageBuffer({
             buffer: req.file.buffer,
             originalname: req.file.originalname,
             mimetype: req.file.mimetype,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+            capturedAt,
+            address,
         });
 
         // Upload original/processed full image

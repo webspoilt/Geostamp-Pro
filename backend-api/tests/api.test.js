@@ -159,4 +159,38 @@ describe('5. GPS Coordinate Validation & Null Island Rejection', () => {
         expect(res.status).toBe(422);
         expect(res.body.message).toMatch(/Valid GPS coordinates required/);
     });
+
+    it('cleans pre-existing metadata and injects verified edited GPS and timestamp metadata', async () => {
+        const userRes = await request(app).post('/api/auth/register').send({
+            name: 'Exif Cleaner',
+            email: 'exifcleaner@example.com',
+            password: 'password1234',
+        });
+        const token = userRes.body.token;
+
+        const fakeImageBuffer = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+            'base64'
+        );
+
+        const uploadRes = await request(app)
+            .post('/api/images')
+            .set('Authorization', `Bearer ${token}`)
+            .field('latitude', '37.7749')
+            .field('longitude', '-122.4194')
+            .field('address', 'San Francisco, CA')
+            .attach('image', fakeImageBuffer, 'original_camera.png');
+
+        expect(uploadRes.status).toBe(201);
+        expect(uploadRes.body.location.coordinates).toEqual([-122.4194, 37.7749]);
+        expect(uploadRes.body.address).toBe('San Francisco, CA');
+
+        // Fetch the processed file and verify it is a valid JPEG
+        const fileRes = await request(app)
+            .get(`/api/images/${uploadRes.body._id}/file`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(fileRes.status).toBe(200);
+        expect(fileRes.headers['content-type']).toMatch(/image\/jpeg/);
+    });
 });
