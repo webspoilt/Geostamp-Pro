@@ -42,12 +42,13 @@ class ApiService {
   Future<Response> getProfile() => _dio.get('/api/auth/profile');
 
   // ---- Images ----
-  Future<Response> uploadImage(String filePath, {double? lat, double? lng, String? address}) async {
+  Future<Response> uploadImage(String filePath, {double? lat, double? lng, String? address, DateTime? capturedAt}) async {
     final formData = FormData.fromMap({
       'image': await MultipartFile.fromFile(filePath),
       if (lat != null) 'latitude': lat,
       if (lng != null) 'longitude': lng,
       if (address != null) 'address': address,
+      if (capturedAt != null) 'capturedAt': capturedAt.toIso8601String(),
     });
     return _dio.post('/api/images', data: formData);
   }

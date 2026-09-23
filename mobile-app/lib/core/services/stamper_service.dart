@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 
@@ -24,14 +23,15 @@ class StamperService {
     final gpsStr = 'GPS: ${latitude.abs().toStringAsFixed(6)}° $latDir, ${longitude.abs().toStringAsFixed(6)}° $lngDir';
 
     final textLines = [
-      '🕒 $timeStr',
-      '📍 $gpsStr',
-      if (address != null && address.isNotEmpty) '🏠 $address',
+      'TIME: $timeStr',
+      'LOC : $gpsStr',
+      if (address != null && address.trim().isNotEmpty) 'ADDR: ${address.trim()}',
     ];
 
-    // Compute banner layout dimensions
-    final padding = 20;
-    final lineHeight = 28;
+    // Pick font based on image resolution
+    final font = decoded.width > 1200 ? img.arial48 : img.arial24;
+    final padding = decoded.width > 1200 ? 36 : 18;
+    final lineHeight = decoded.width > 1200 ? 56 : 28;
     final bannerHeight = (textLines.length * lineHeight) + (padding * 2);
     final bannerWidth = decoded.width;
     final bannerY = decoded.height - bannerHeight;
@@ -43,7 +43,17 @@ class StamperService {
       y1: bannerY,
       x2: bannerWidth,
       y2: decoded.height,
-      color: img.ColorRgba8(0, 0, 0, 180),
+      color: img.ColorRgba8(0, 0, 0, 190),
+    );
+
+    // Draw yellow accent bar on top of stamp banner
+    img.fillRect(
+      decoded,
+      x1: 0,
+      y1: bannerY,
+      x2: bannerWidth,
+      y2: bannerY + (decoded.width > 1200 ? 6 : 3),
+      color: img.ColorRgba8(0, 212, 255, 255), // Cyan brand accent
     );
 
     // Draw stamp text lines
@@ -52,7 +62,7 @@ class StamperService {
       img.drawString(
         decoded,
         line,
-        font: img.arial24,
+        font: font,
         x: padding,
         y: currentY,
         color: img.ColorRgba8(255, 255, 255, 255),
@@ -61,8 +71,9 @@ class StamperService {
     }
 
     // Save stamped image to new file
-    final stampedPath = imageFile.path.replaceAll('.jpg', '_stamped.jpg');
-    final stampedBytes = img.encodeJpg(decoded, quality: 88);
+    final ext = imageFile.path.contains('.') ? imageFile.path.split('.').last : 'jpg';
+    final stampedPath = imageFile.path.replaceAll('.$ext', '_stamped.jpg');
+    final stampedBytes = img.encodeJpg(decoded, quality: 90);
     final stampedFile = File(stampedPath);
     await stampedFile.writeAsBytes(stampedBytes);
 

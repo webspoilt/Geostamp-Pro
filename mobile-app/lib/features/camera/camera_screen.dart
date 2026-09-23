@@ -145,7 +145,13 @@ class _CameraScreenState extends State<CameraScreen> {
         title: const Text('GeoStamp Camera'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.photo_library),
+            tooltip: 'Pick from Gallery to Stamp',
+            onPressed: () => Navigator.pushNamed(context, '/editor'),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh GPS',
             onPressed: _refreshLocationAndTimestamp,
           ),
         ],
