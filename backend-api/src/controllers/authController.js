@@ -21,7 +21,13 @@ exports.register = async (req, res) => {
 
         res.status(201).json({
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isPremium: user.isPremium || false,
+            },
         });
     } catch (error) {
         // Catch MongoDB duplicate key error (race condition)
@@ -46,7 +52,13 @@ exports.login = async (req, res) => {
 
         res.json({
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isPremium: user.isPremium || false,
+            },
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -57,9 +69,65 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        res.json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isPremium: user.isPremium || false,
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
+// GET /api/auth/subscription-status
+exports.getSubscriptionStatus = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const today = new Date().toISOString().slice(0, 10);
+        if (user.lastEditDate !== today) {
+            user.dailyEditCount = 0;
+            user.lastEditDate = today;
+            await user.save();
+        }
+
+        res.json({
+            isPremium: user.isPremium || false,
+            freeDailyLimit: 1,
+            todayEditsCount: user.dailyEditCount || 0,
+            remainingEdits: user.isPremium ? 999 : Math.max(0, 1 - (user.dailyEditCount || 0)),
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// POST /api/auth/subscribe (₹99 / month Pro upgrade)
+exports.upgradeSubscription = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.isPremium = true;
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 30);
+        user.premiumExpiresAt = expires;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Upgraded to GeoStamp Pro Unlimited for ₹99/month',
+            isPremium: true,
+            expiresAt: user.premiumExpiresAt,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 

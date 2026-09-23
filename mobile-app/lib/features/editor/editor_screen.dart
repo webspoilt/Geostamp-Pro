@@ -62,7 +62,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
   Future<void> _pickImageFromGallery() async {
     final sub = Provider.of<SubscriptionService>(context, listen: false);
-    if (!sub.canEditFromGallery()) {
+    if (!sub.canEditPhoto()) {
       await PremiumUpgradeDialog.show(context);
       return;
     }
@@ -201,7 +201,7 @@ class _EditorScreenState extends State<EditorScreen> {
     }
 
     final sub = Provider.of<SubscriptionService>(context, listen: false);
-    if (_isGalleryImage && !sub.canEditFromGallery()) {
+    if (!sub.canEditPhoto()) {
       await PremiumUpgradeDialog.show(context);
       return;
     }
@@ -231,10 +231,8 @@ class _EditorScreenState extends State<EditorScreen> {
         _stampedFile = stamped;
       });
 
-      // Record edit quota if image was loaded from gallery
-      if (_isGalleryImage) {
-        await sub.recordGalleryEdit();
-      }
+      // Record daily edit quota (single photo per day for free users)
+      await sub.recordPhotoEdit();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -349,11 +347,17 @@ class _EditorScreenState extends State<EditorScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      sub.isPremium
-                          ? '⭐ PRO Member · Unlimited Gallery Edits'
-                          : 'Gallery Limit: ${sub.remainingFreeEdits()} free edit remaining today',
+                      sub.isTampered
+                          ? '⛔ Device Tampering / Root Detected (Pro Locked)'
+                          : sub.isPremium
+                              ? '⭐ PRO Member · Unlimited Edits'
+                              : 'Editing Limit: ${sub.remainingFreeEdits()} photo remaining today (Camera is free)',
                       style: TextStyle(
-                        color: sub.isPremium ? Colors.amber : Colors.white,
+                        color: sub.isTampered
+                            ? Colors.redAccent
+                            : sub.isPremium
+                                ? Colors.amber
+                                : Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),

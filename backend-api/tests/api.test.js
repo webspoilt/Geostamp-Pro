@@ -194,3 +194,42 @@ describe('5. GPS Coordinate Validation & Null Island Rejection', () => {
         expect(fileRes.headers['content-type']).toMatch(/image\/jpeg/);
     });
 });
+
+describe('6. Anti-Mod Subscription & Daily Limit Server Verification', () => {
+    it('verifies 1 edit/day for free users and permits unlimited after ₹99 upgrade', async () => {
+        const userRes = await request(app).post('/api/auth/register').send({
+            name: 'Sub Tester',
+            email: 'subtester@example.com',
+            password: 'password1234',
+        });
+        const token = userRes.body.token;
+
+        // Check initial subscription status
+        const statusRes = await request(app)
+            .get('/api/auth/subscription-status')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(statusRes.status).toBe(200);
+        expect(statusRes.body.isPremium).toBe(false);
+        expect(statusRes.body.freeDailyLimit).toBe(1);
+        expect(statusRes.body.remainingEdits).toBe(1);
+
+        // Perform ₹99 Pro upgrade
+        const upgradeRes = await request(app)
+            .post('/api/auth/subscribe')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(upgradeRes.status).toBe(200);
+        expect(upgradeRes.body.isPremium).toBe(true);
+
+        // Re-check status after upgrade
+        const proStatusRes = await request(app)
+            .get('/api/auth/subscription-status')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(proStatusRes.status).toBe(200);
+        expect(proStatusRes.body.isPremium).toBe(true);
+        expect(proStatusRes.body.remainingEdits).toBe(999);
+    });
+});
+

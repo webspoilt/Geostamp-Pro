@@ -31,6 +31,22 @@ const userSchema = new mongoose.Schema(
             enum: ['user', 'admin'],
             default: 'user',
         },
+        isPremium: {
+            type: Boolean,
+            default: false,
+        },
+        premiumExpiresAt: {
+            type: Date,
+            default: null,
+        },
+        lastEditDate: {
+            type: String,
+            default: '',
+        },
+        dailyEditCount: {
+            type: Number,
+            default: 0,
+        },
     },
     { timestamps: true }
 );

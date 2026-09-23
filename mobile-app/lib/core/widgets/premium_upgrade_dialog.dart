@@ -61,7 +61,7 @@ class _PremiumUpgradeDialogState extends State<PremiumUpgradeDialog> {
                 border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
               ),
               child: const Text(
-                '⚠️ Free daily limit reached (1 gallery edit/day)',
+                '⚠️ Free Limit: Only 1 photo edit allowed per day',
                 style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),

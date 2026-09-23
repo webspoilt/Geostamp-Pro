@@ -41,6 +41,11 @@ class ApiService {
 
   Future<Response> getProfile() => _dio.get('/api/auth/profile');
 
+  // ---- Subscription & Anti-Mod Verification ----
+  Future<Response> getSubscriptionStatus() => _dio.get('/api/auth/subscription-status');
+
+  Future<Response> upgradeSubscription() => _dio.post('/api/auth/subscribe');
+
   // ---- Images ----
   Future<Response> uploadImage(String filePath, {double? lat, double? lng, String? address, DateTime? capturedAt}) async {
     final formData = FormData.fromMap({
